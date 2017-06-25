@@ -12,7 +12,9 @@ import (
 	"github.com/containernetworking/cni/pkg/skel"
 	"github.com/containernetworking/cni/pkg/types"
 	"github.com/rancher/rancher-cni-bridge/macfinder"
-	"github.com/rancher/rancher-cni-bridge/macfinder/metadata"
+	mfmetadata "github.com/rancher/rancher-cni-bridge/macfinder/metadata"
+	"github.com/rancher/rancher-cni-bridge/vpcfinder"
+	vfmetadata "github.com/rancher/rancher-cni-bridge/vpcfinder/metadata"
 	"github.com/vishvananda/netlink"
 )
 
@@ -411,7 +413,7 @@ func setInterfaceMacAddress(ifName, mac string) error {
 
 func findMACAddressForContainer(containerID, rancherID string) (string, error) {
 	var mf macfinder.MACFinder
-	mf, err := metadata.NewMACFinderFromMetadata()
+	mf, err := mfmetadata.NewMACFinderFromMetadata()
 	if err != nil {
 		return "", err
 	}
@@ -421,4 +423,17 @@ func findMACAddressForContainer(containerID, rancherID string) (string, error) {
 	}
 
 	return macString, nil
+}
+
+func findVPCSubnet() (string, error) {
+	var vf vpcfinder.VPCFinder
+	vf, err := vfmetadata.NewVPCFinderFromMetadata()
+	if err != nil {
+		return "", err
+	}
+	subnet := vf.GetSelfSubnet()
+	if subnet == "" {
+		return "", fmt.Errorf("No subnet config in host label")
+	}
+	return subnet, nil
 }

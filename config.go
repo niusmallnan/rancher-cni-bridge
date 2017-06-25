@@ -31,6 +31,7 @@ type NetConf struct {
 	LinkMTUOverhead int    `json:"linkMTUOverhead"`
 	HairpinMode     bool   `json:"hairpinMode"`
 	PromiscMode     bool   `json:"promiscMode"`
+	IsAWSVPC        bool   `json:"isAWSVPC"`
 }
 
 func loadNetConf(bytes []byte) (*NetConf, error) {
@@ -39,6 +40,13 @@ func loadNetConf(bytes []byte) (*NetConf, error) {
 	}
 	if err := json.Unmarshal(bytes, n); err != nil {
 		return nil, fmt.Errorf("failed to load netconf: %v", err)
+	}
+	if n.IsAWSVPC {
+		bridgeSubnet, err := findVPCSubnet()
+		if err != nil {
+			return nil, fmt.Errorf("failed to load netconf when using VPC: %v", err)
+		}
+		n.BrSubnet = bridgeSubnet
 	}
 	return n, nil
 }
