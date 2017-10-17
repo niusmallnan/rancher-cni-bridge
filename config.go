@@ -26,6 +26,7 @@ type NetConf struct {
 	IsDebugLevel    string `json:"isDebugLevel"`
 	IsGW            bool   `json:"isGateway"`
 	IsDefaultGW     bool   `json:"isDefaultGateway"`
+	IsL2Flat        bool   `json:"isL2Flat"`
 	IPMasq          bool   `json:"ipMasq"`
 	MTU             int    `json:"mtu"`
 	LinkMTUOverhead int    `json:"linkMTUOverhead"`

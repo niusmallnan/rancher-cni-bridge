@@ -158,12 +158,13 @@ func cmdAdd(args *skel.CmdArgs) error {
 	}
 	logrus.Infof("rancher-cni-bridge: for container: %v(%v) using ip: %v", args.ContainerID, nArgs.RancherContainerUUID, result.IP4.IP)
 
+	bridgeIP, err := getBridgeIP(br)
+	if err != nil {
+		return err
+	}
+
 	if n.IsGW {
 		if n.UseBridgeIPAsGW {
-			bridgeIP, err := getBridgeIP(br)
-			if err != nil {
-				return err
-			}
 			result.IP4.Gateway = bridgeIP
 		} else if result.IP4.Gateway == nil {
 			result.IP4.Gateway = calcGatewayIP(&result.IP4.IP)
@@ -224,6 +225,17 @@ func cmdAdd(args *skel.CmdArgs) error {
 			)
 
 			// TODO: IPV6
+		}
+
+		if n.IsL2Flat {
+			_, metadataNet, err := net.ParseCIDR(getMetadataCIDR())
+			if err != nil {
+				return err
+			}
+			result.IP4.Routes = append(
+				result.IP4.Routes,
+				types.Route{Dst: *metadataNet, GW: bridgeIP},
+			)
 		}
 
 		return configureInterface(args.IfName, result)

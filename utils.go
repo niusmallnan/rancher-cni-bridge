@@ -340,6 +340,11 @@ func setBridgeIP(bridgeName, bridgeIP, bridgeSubnet string) error {
 }
 
 func setupBridge(n *NetConf) (*netlink.Bridge, error) {
+	// bridge exists while using flat network
+	if n.IsL2Flat {
+		br, err := bridgeByName(n.BrName)
+		return br, err
+	}
 	// create bridge if necessary
 	br, err := ensureBridge(n.BrName, n.MTU, n.PromiscMode)
 	if err != nil {
@@ -441,4 +446,12 @@ func findMACAddressForContainer(containerID, rancherID string) (string, error) {
 	}
 
 	return macString, nil
+}
+
+func getMetadataCIDR() string {
+	metadataAddress := os.Getenv("RANCHER_METADATA_ADDRESS")
+	if metadataAddress == "" {
+		metadataAddress = metadata.DefaultMetadataAddress
+	}
+	return fmt.Sprintf("%s/32", metadataAddress)
 }
